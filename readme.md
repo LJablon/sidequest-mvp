@@ -2,26 +2,26 @@
 
 ## Introducing SIDEQUE$T: 
 
-11.5% of California’s youth (aged 16-24) were neither in school nor employed in 2024. There has been a decline of ~3 million students over last decade. Over 4 million Gen Zers are jobless due to "worthless degrees" What does all this mean? We need  a platform for people to make money without a degree.
+11.5% of California’s youth (aged 16-24) were neither in school nor employed in 2024, and an estimated 45% of recent grads aged 22 to 27 are Underemployed. There has been a decline of ~3 million students over the last decade. Over 4 million Gen Zers are jobless due to "worthless degrees," or simply degrees that are facing the last two years of the entry-level job market. What does all this mean? We need  a platform for people with real skills to make money with or without a degree.
 
-The solution: SIDEQUE$T is a safe, user-friendly marketplace to connect job seekers to opportunities. Through a tag-based recommendation system, job seekers can display their main skills on their profile and SIDEQUE$T will recommend jobs they are most qualified for.
+The solution: SIDEQUE$T is a safe, user-friendly marketplace to connect job seekers to opportunities. Through a tag-based recommendation system, job seekers can display their main skills on their profile, and SIDEQUE$T will recommend jobs they are most qualified for.
 
 **Why SIDEQUE$T?**
 
 - **Safe**: Unlike Craigslist, SIDEQUE$T authticates using Google, and has a clean + intutive UI. We have a backdoor admin account that flags inappropriate content and bans offensive users.
 
-- **For job seekers AND posters**: Platforms such as Fiverr, Upwork, and Taskrabbit only focus on users posting their skills and what they can complete, rather than having actual task postings. LinkedIn is only for salaried jobs, not one-off tasks for quick cash.
+- **For job seekers AND posters**: Platforms such as Fiverr, Upwork, and TaskRabbit only focus on users posting their skills and what they can complete, rather than on actual task postings. LinkedIn is only for salaried jobs, not one-off tasks for quick cash.
 
-- **Wide variety of skills allowed**: Another competitor, SideShift, markets itself as a platform that connects Gen Z with flexible, paid gigs in content creation, social media, and marketing. However, SIDEQUE$T does not limit to just these fields. From haircuts to teaching surf lessons, you can complete someone's quest or find someone to complete yours.
+- **Wide variety of skills allowed**: Another competitor, SideShift, markets itself as a platform that connects Gen Z with flexible, paid gigs in content creation, social media, and marketing. However, SIDEQUE$T is not limited to just these fields. From haircuts to teaching surf lessons, you can complete someone's quest or find someone to complete yours.
 
 **Join the SIDEQUE$T Community Today!**
 
-Say goodbye to scraping enough money to get by every month or feeling like your skills are useless. On the flip side, say goodbye to overpaying for basic tasks you need one.
+Say goodbye to scraping enough money to get by every month or feeling like your skills are useless. On the flip side, say goodbye to overpaying for basic tasks you need done.
 
 Get your money up.
 
 ## Try SIDEQUE$T? out Yourself!
-https://sidequest-blue.vercel.app/
+[https://sidequest-mvp-xi.vercel.app/](https://sidequest-mvp-xi.vercel.app/)
 
 ## SIDEQUE$T Conference Presentation 
 
