@@ -38,6 +38,12 @@ model User {
 
   accounts Account[]
   messages Message[]
+
+  // Quest Log: verified completed quests + role-aware reviews (additive).
+  completionsAsPoster  Completion[] @relation("PosterCompletions")
+  completionsAsQuester Completion[] @relation("QuesterCompletions")
+  reviewsAuthored      Review[]     @relation("ReviewAuthor")
+  reviewsReceived      Review[]     @relation("ReviewSubject")
 }
 
 model Account {
@@ -107,7 +113,62 @@ model Quest {
   updatedAt         DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade) // TODO: confirm this works when we do a prisma delete and not an admin delete
+
+  completions Completion[]
 }
+
+// A verified completion of a quest between its poster and the quester who did
+// it. Title/tags are snapshotted so the log entry survives quest deletion
+// (questId goes null via SetNull). Verified = both parties confirmed.
+model Completion {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  questId    String?  @db.ObjectId
+  questTitle String
+  tags       String[]
+  posterId   String   @db.ObjectId
+  questerId  String   @db.ObjectId
+
+  posterConfirmed    Boolean   @default(false)
+  posterConfirmedAt  DateTime?
+  posterPrompted     Boolean   @default(false)
+  questerConfirmed   Boolean   @default(false)
+  questerConfirmedAt DateTime?
+  questerPrompted    Boolean   @default(false)
+
+  artifactNote String?
+  artifactUrl  String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  quest   Quest? @relation(fields: [questId], references: [id], onDelete: SetNull)
+  poster  User   @relation("PosterCompletions", fields: [posterId], references: [id], onDelete: Cascade)
+  quester User   @relation("QuesterCompletions", fields: [questerId], references: [id], onDelete: Cascade)
+  reviews Review[]
+
+  @@index([questerId])
+  @@index([posterId])
+}
+
+// A role-aware review, only creatable against a verified completion.
+// `role` is the review AUTHOR's role in that completion: "as_quester" | "as_poster".
+model Review {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  completionId String   @db.ObjectId
+  authorId     String   @db.ObjectId
+  subjectId    String   @db.ObjectId
+  role         String
+  wouldRepeat  Boolean  @default(true)
+  body         String?
+  createdAt    DateTime @default(now())
+
+  completion Completion @relation(fields: [completionId], references: [id], onDelete: Cascade)
+  author     User       @relation("ReviewAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  subject    User       @relation("ReviewSubject", fields: [subjectId], references: [id], onDelete: Cascade)
+
+  @@index([subjectId])
+  @@index([completionId])
+}
+
 model Certification {
   id           String   @id @default(auto()) @map("_id") @db.ObjectId
   name         String

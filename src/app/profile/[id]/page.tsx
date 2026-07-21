@@ -7,8 +7,11 @@ import { faGithub, faLinkedin, faYoutube, faInstagram } from "@fortawesome/free-
 import Link from "next/link";
 import Image from "next/image";
 import MessageButton from "../../../components/MessageButton";
+import QuestLogSection from "@/src/components/QuestLogSection";
+import ReviewsSection from "@/src/components/ReviewsSection";
 
 import { getUserById } from "./actions";          // ← pulled in from actions.ts
+import { getVerifiedQuestLog, getReviewsReceived } from "@/src/app/my-quest-log/data";
 
 export default async function ProfilePage(
   {
@@ -33,6 +36,12 @@ export default async function ProfilePage(
 
   const session = await getServerSession(authOptions);
   const isCurrentUser = session?.user?.email === user.email;
+
+  // Quest Log feature (additive): verified completions + reviews for this user.
+  const [questLog, reviews] = await Promise.all([
+    getVerifiedQuestLog(user.id),
+    getReviewsReceived(user.id),
+  ]);
 
   return (
     <div className="flex flex-col md:flex-row absolute inset-0 top-16">
@@ -200,6 +209,12 @@ export default async function ProfilePage(
                 </div>
               </div>
             )}
+
+            {/* Quest Log — verified completed quests (additive) */}
+            <QuestLogSection entries={questLog} ownerId={user.id} />
+
+            {/* Reviews — role-aware, from verified completions (additive) */}
+            <ReviewsSection reviews={reviews} />
           </div>
         </div>
       </div>

@@ -73,7 +73,7 @@ export default function Header({ user }: Props) {
                     onClick={() => setShowDropdown(false)}
                     className="bg-black/50 fixed inset-0 z-40"
                   ></div>
-                  <div className="absolute z-50 right-0 top-8 bg-white rounded-md w-24 border">
+                  <div className="absolute z-50 right-0 top-8 bg-white rounded-md w-28 border">
                     <button
                       className="p-2 block text-center cursor-pointer w-full"
                       onClick={() => {
@@ -82,6 +82,15 @@ export default function Header({ user }: Props) {
                       }}
                     >
                       My Quests
+                    </button>
+                    <button
+                      className="p-2 block text-center cursor-pointer w-full"
+                      onClick={() => {
+                        setShowDropdown(false);
+                        router.push("/my-quest-log");
+                      }}
+                    >
+                      My Quest Log
                     </button>
                     <button
                       className="p-2 block text-center cursor-pointer w-full"
