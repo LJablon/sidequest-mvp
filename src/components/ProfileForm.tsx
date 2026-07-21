@@ -6,12 +6,13 @@ import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
 
 import type { UploadResponse } from "imagekit/dist/libs/interfaces";
-import type { User, Certification } from "@prisma/client";
+import type { User, Certification, Media } from "@prisma/client";
 
 import SubmitButton from "./SubmitButton";
 import SkillTags from "./SkillTags";
 import SocialLinks from "./SocialLinks";
 import CertificationLinks from "./CertificationLinks";
+import MediaLinks from "./MediaLinks";
 import { createProfile, updateProfile } from "@/src/app/actions/profileActions";
 import SingleImageUpload from "./SingleImageUpload";
 
@@ -19,6 +20,7 @@ interface ProfileFormProps {
   user:
     | (User & {
         certifications: Certification[];
+        media: Media[]; 
       })
     | null;
 }
@@ -33,6 +35,7 @@ export default function ProfileForm({ user }: ProfileFormProps) {
   const [certifications, setCertifications] = useState<Certification[]>(
     user?.certifications || []
   );
+  const [media, setMedia] = useState<Media[]>(user?.media || []);
   const [formData, setFormData] = useState({
     name: user?.name || "",
     about: user?.about || "",
@@ -52,6 +55,7 @@ export default function ProfileForm({ user }: ProfileFormProps) {
         user.image ? ({ url: user.image } as UploadResponse) : undefined
       );
       setCertifications(user.certifications || []);
+      setMedia(user.media || []);
     }
   }, [user]);
 
@@ -102,6 +106,14 @@ export default function ProfileForm({ user }: ProfileFormProps) {
         issuer: cert.issuer,
       })) || [];
     submitData.append("certifications", JSON.stringify(certificationsToSubmit));
+
+    const mediaToSubmit =
+      media?.map((item) => ({
+        name: item.name,
+        documentUrl: item.documentUrl || null,
+        documentFile: item.documentFile || null,
+      })) || [];
+    submitData.append("media", JSON.stringify(mediaToSubmit));
 
     submitData.append("skills", JSON.stringify(skills));
     submitData.append("activeStatus", String(formData.activeStatus));
@@ -174,6 +186,34 @@ export default function ProfileForm({ user }: ProfileFormProps) {
   function removeCertification(index: number) {
     setCertifications(certifications.filter((_, i) => i !== index));
   }
+
+  function handleMediaChange(index: number, field: keyof Media, value: any) {
+    const newMedia = [...media];
+    newMedia[index] = {
+      ...newMedia[index],
+      [field]: value,
+    };
+    setMedia(newMedia);
+  }
+
+  function addMedia() {
+    setMedia([
+      ...media,
+      {
+        id: "",
+        name: "",
+        documentUrl: "",
+        documentFile: null,
+        userId: user?.id || "",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    ]);
+  }
+
+  function removeMedia(index: number) {
+    setMedia(media.filter((_, i) => i !== index));
+  }
   function handleToggleChange() {
     setFormData((prev) => ({
       ...prev,
@@ -220,6 +260,19 @@ export default function ProfileForm({ user }: ProfileFormProps) {
             rows={5}
             className="w-full border border-gray-300 rounded px-3 py-2 mt-1"
           ></textarea>
+        </div>
+
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700">
+            Media
+          </label>
+          <MediaLinks
+            media={media}
+            setMedia={setMedia}
+            onMediaChange={handleMediaChange}
+            onAddMedia={addMedia}
+            onRemoveMedia={removeMedia}
+          />
         </div>
 
         <div className="mb-4">

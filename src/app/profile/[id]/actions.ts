@@ -17,6 +17,7 @@ export async function getUserById(id: string) {
         take: 5,
       },
       certifications: true,
+      media: true,
     },
   });
   if (!user) return null;
