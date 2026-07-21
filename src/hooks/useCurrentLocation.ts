@@ -2,8 +2,8 @@ import { create } from "zustand";
 import { Location } from "../components/LocationPicker";
 
 const locationDefault: Location = {
-  lng: -121.9368, 
-  lat: 37.3489
+  lng: -117.777214, 
+  lat: 33.541679    
 }
 
 interface CurrentLocationStore {

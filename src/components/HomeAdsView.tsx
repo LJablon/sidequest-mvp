@@ -26,6 +26,10 @@ export default function HomeAdsView() {
 
     fetchSession();
   }, []);
+  
+  useEffect(() => {
+    fetchAds();
+  }, []);
 
   useEffect(() => {
     const fetchFavorites = async () => {
@@ -67,9 +71,6 @@ export default function HomeAdsView() {
     });
   };
 
-  useEffect(() => {
-    fetchAds();
-  }, []);
 
   function fetchAds(params?: URLSearchParams) {
     if (!params) {
