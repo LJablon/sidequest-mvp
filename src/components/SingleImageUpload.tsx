@@ -3,6 +3,7 @@ import { faImage, faPlus } from "@fortawesome/free-solid-svg-icons";
 import { UploadResponse } from "imagekit/dist/libs/interfaces";
 import { Dispatch, SetStateAction, useState } from "react";
 import Uploader from "./Uploader";
+import Image from "next/image";
 
 type Props = {
   file: UploadResponse | undefined;
@@ -16,12 +17,14 @@ export default function SingleImageUpload({ file, setFile }: Props) {
     <div className="bg-gray-100 p-6 rounded flex flex-col items-center gap-4">
       <div className="w-32 h-32 rounded-full overflow-hidden border border-gray-300 flex items-center justify-center bg-white">
       {file?.url ? (
-        <img
+        <Image
           src={file.url}
-          alt="Uploaded"
+          alt="Uploaded Profile Image"
+          width={128}
+          height={128}
           className="object-cover w-full h-full"
         />
-      ) : (
+) : (
         <FontAwesomeIcon icon={faImage} className="text-gray-300 text-4xl" />
       )}
       </div>

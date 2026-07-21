@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import toast from "react-hot-toast";
 import AdTextInputs, { AdTexts } from "./AdTextInputs";
-import  { Location } from "./LocationPicker";
+import type { Location } from "@/libs/location";
 import SubmitButton from "./SubmitButton";
 import UploadArea from "./UploadArea";
 import { UploadResponse } from "imagekit/dist/libs/interfaces";
@@ -39,6 +39,17 @@ export default function AdForm({
     useState<FormattedAutocompleteLocation | null>(defaultFormattedLocation);
   const [tags, setTags] = useState<string[]>(defaultTags); // New state for tags
 
+  const handleLocationChange = useCallback((nextLocation: Location) => {
+    setLocation(nextLocation);
+  }, []);
+
+  const handleFormattedLocationChange = useCallback(
+    (nextLocation: FormattedAutocompleteLocation) => {
+      setFormattedLocation(nextLocation);
+    },
+    []
+  );
+
   async function handleSubmit(formData: FormData) {
     formData.set("location", JSON.stringify(location));
     formData.set("files", JSON.stringify(files));
@@ -66,14 +77,12 @@ export default function AdForm({
         <SkillTags tags={tags} setTags={setTags} />
       </div>
       <div className="grow lg:pt-2">
-        <label htmlFor="">Quest Location</label>
+        <label htmlFor="quest-location">Quest Location</label>
         <AutoCompleteMap
           defaultLocation={defaultLocation}
           mapHeight="300px"
-          onLocationChange={(location) => setLocation(location)}
-          onFormattedLocationChange={(formattedLocation) =>
-            setFormattedLocation(formattedLocation)
-          }
+          onLocationChange={handleLocationChange}
+          onFormattedLocationChange={handleFormattedLocationChange}
         />
         <div className="mt-8">
           <label htmlFor="">Quest Images</label>

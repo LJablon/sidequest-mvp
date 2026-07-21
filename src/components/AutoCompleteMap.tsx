@@ -1,9 +1,9 @@
 "use client";
+
 import { useEffect, useRef, useState } from "react";
-import { Libraries, useJsApiLoader } from "@react-google-maps/api";
-import useCurrentLocation from "../hooks/useCurrentLocation";
-import { FormattedAutocompleteLocation } from "@/libs/types";
-import { Location } from "./LocationPicker";
+import { getGoogleMapsLoader, GOOGLE_MAP_ID } from "@/libs/googleMaps";
+import type { Location } from "@/libs/location";
+import type { FormattedAutocompleteLocation } from "@/libs/types";
 
 interface AutoCompleteMapProps {
   defaultLocation?: Location;
@@ -12,141 +12,129 @@ interface AutoCompleteMapProps {
   onFormattedLocationChange: (location: FormattedAutocompleteLocation) => void;
 }
 
-const libs: Libraries = ["core", "maps", "marker", "places"];
 export default function AutoCompleteMap({
   defaultLocation,
-  mapHeight,
+  mapHeight = "300px",
   onLocationChange,
   onFormattedLocationChange,
 }: AutoCompleteMapProps) {
-  const [map, setMap] = useState<google.maps.Map | null>(null);
-  const [autoComplete, setAutoComplete] =
-    useState<google.maps.places.Autocomplete>();
-  const { isLoaded } = useJsApiLoader({
-    googleMapsApiKey: process.env.NEXT_PUBLIC_MAPS_KEY as string,
-    libraries: libs,
-  });
   const mapRef = useRef<HTMLDivElement>(null);
   const placesAutoCompleteRef = useRef<HTMLInputElement>(null);
-  const currentLocation = useCurrentLocation((state) => state.currLocation);
-  useCurrentLocation(
-    (state) => state.setCurrLocation
-  );
-  
   const [place, setPlace] = useState<string | null>(null);
-  
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const latitude = defaultLocation?.lat;
+  const longitude = defaultLocation?.lng;
 
   useEffect(() => {
-    if (isLoaded && google && google.maps && google.maps.places) {
-      const mapOptions = {
-        center: currentLocation,
-        zoom: 17,
-        id: "google-map-script",
-        mapId: "autocomplete-map",
-      };
-      const gMap = new google.maps.Map(
-        mapRef.current as HTMLDivElement,
-        mapOptions
-      );
-
-      //setup autocomplete
-      const autoCompleteOptions = {
-        fields: [
-          "formatted_address",
-          "name",
-          "geometry",
-          "vicinity",
-          "place_id",
-        ],
-      };
-      const googleAutoComplete = new google.maps.places.Autocomplete(
-        placesAutoCompleteRef.current as HTMLInputElement,
-        autoCompleteOptions
-      );
-      setAutoComplete(googleAutoComplete);
-      setMap(gMap);
-      
-    }}, [isLoaded]);
-
-  useEffect(() => {
-     // add the marker for a default location
-     if (defaultLocation && google && google.maps && google.maps.LatLng) {
-      const defaultLatLng = new google.maps.LatLng({
-        lat: defaultLocation.lat,
-        lng: defaultLocation.lng,
-      });
-      setMarker(defaultLatLng);
-   }
-
-  }, [map]);
-
-  function setMarker(location: google.maps.LatLng) {
-    if (!map) {
+    if (latitude === undefined || longitude === undefined) {
       return;
     }
-    map.setCenter(location);
-    new google.maps.marker.AdvancedMarkerElement({
-      map: map,
-      position: location,
-      title: "Marker",
-    });
-  }
 
-  // Infowindow library for info pop ups
+    const initialPosition = { lat: latitude, lng: longitude };
+    let active = true;
+    let placeListener: google.maps.MapsEventListener | null = null;
+    let marker: google.maps.marker.AdvancedMarkerElement | null = null;
 
-  useEffect(() => {
-    if (autoComplete) {
-      autoComplete.addListener("place_changed", () => {
-        const place = autoComplete.getPlace();
-        onFormattedLocationChange({
-          formatted_address: place.formatted_address as string,
-          name: place.name as string,
-          location: {
-            lng: place.geometry?.location?.lng() as number,
-            lat: place.geometry?.location?.lat() as number,
-          },
-          vicinity: place.vicinity as string,
-          place_id: place.place_id as string,
+    async function initializeMap() {
+      try {
+        setIsLoaded(false);
+        setLoadError(null);
+
+        const loader = getGoogleMapsLoader();
+        const { Map } = await loader.importLibrary("maps");
+        const { AdvancedMarkerElement } = await loader.importLibrary("marker");
+        const { Autocomplete } = await loader.importLibrary("places");
+
+        if (!active || !mapRef.current || !placesAutoCompleteRef.current) {
+          return;
+        }
+
+        const map = new Map(mapRef.current, {
+          center: initialPosition,
+          zoom: 17,
+          mapId: GOOGLE_MAP_ID,
         });
-        onLocationChange({
-          lng: place.geometry?.location?.lng() as number,
-          lat: place.geometry?.location?.lat() as number,
+
+        marker = new AdvancedMarkerElement({
+          map,
+          position: initialPosition,
+          title: "Quest location",
         });
-        setPlace(place.formatted_address as string);
-        const position = place.geometry?.location;
-        if (position) {
-          setMarker(position);
-        } // TODO: quirk to work out later: let the default location be displayed before the autocomplete
-        // else {
-        //   const currentPosition = new google.maps.LatLng({
-        //     lat: currentLocation?.lat as number,
-        //     lng: currentLocation?.lng as number,
-        //   });
-        //   setMarker(currentPosition, "");
-        // }
-      });
+
+        const autoComplete = new Autocomplete(placesAutoCompleteRef.current, {
+          fields: [
+            "formatted_address",
+            "name",
+            "geometry",
+            "vicinity",
+            "place_id",
+          ],
+        });
+
+        placeListener = autoComplete.addListener("place_changed", () => {
+          const selectedPlace = autoComplete.getPlace();
+          const position = selectedPlace.geometry?.location;
+
+          if (!position || !marker) {
+            return;
+          }
+
+          const location = { lat: position.lat(), lng: position.lng() };
+          const formattedLocation: FormattedAutocompleteLocation = {
+            formatted_address: selectedPlace.formatted_address ?? "",
+            name: selectedPlace.name ?? "",
+            location,
+            vicinity: selectedPlace.vicinity ?? "",
+            place_id: selectedPlace.place_id ?? "",
+          };
+
+          setPlace(formattedLocation.formatted_address);
+          marker.position = position;
+          map.setCenter(position);
+          onFormattedLocationChange(formattedLocation);
+          onLocationChange(location);
+        });
+
+        setIsLoaded(true);
+      } catch (error) {
+        if (active) {
+          setLoadError(
+            error instanceof Error ? error.message : "Unable to load Google Maps."
+          );
+        }
+      }
     }
-  }, [autoComplete]);
-  if (!isLoaded || !google || !google.maps || !google.maps.places) {
-    return (
-      <div className="flex flex-col space-y-1">
-        <p>Loading Google Maps...</p>
-        <p>
-          If this issue persists for longer than a few seconds, refresh the page
-        </p>
-      </div>
-    );
-  }
+
+    void initializeMap();
+
+    return () => {
+      active = false;
+      placeListener?.remove();
+      if (marker) {
+        marker.map = null;
+      }
+    };
+  }, [latitude, longitude, onFormattedLocationChange, onLocationChange]);
 
   return (
     <div className="flex flex-col space-y-4">
+      {!isLoaded && !loadError && (
+        <p aria-live="polite">Loading Google Maps...</p>
+      )}
+      {loadError && (
+        <p className="text-sm text-red-600" role="alert">
+          {loadError}
+        </p>
+      )}
       <input
+        id="quest-location"
         type="text"
         placeholder="Quest Location"
         ref={placesAutoCompleteRef}
+        disabled={!isLoaded}
       />
-      <label>{place}</label>
-
+      {place && <p>{place}</p>}
       <div style={{ height: mapHeight }} ref={mapRef} />
     </div>
   );

@@ -5,7 +5,6 @@ import Link from "next/link";
 import FavoriteButton from "./FavoriteButton";
 import { Ad } from "../models/Ad";
 import useCurrentLocation from "../hooks/useCurrentLocation";
-import { Location } from "./LocationPicker";
 
 
 export default function AdItem({ad,favorites,userEmail,onFavoriteChange}:{ad:Ad; favorites:string[]; userEmail:string|null;onFavoriteChange:(adId:string,isFavorited:boolean)=>void;}){
@@ -22,9 +21,9 @@ export default function AdItem({ad,favorites,userEmail,onFavoriteChange}:{ad:Ad;
             <div className="flex justify-between align-top">
               <div className="flex flex-col">
                 <h1 className="text-2xl">{ad.title}</h1>
-                {ad.formattedLocation?.vicinity && (
+                {currentLocation && ad.formattedLocation?.vicinity && (
                   <div>
-                    {ad.formattedLocation?.vicinity} - {getDistanceInMiles(currentLocation as Location, ad.formattedLocation.location)} Miles From You
+                    {ad.formattedLocation.vicinity} - {getDistanceInMiles(currentLocation, ad.formattedLocation.location)} Miles From You
                   </div>
                 )}
               </div>
