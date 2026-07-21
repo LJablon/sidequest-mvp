@@ -9,6 +9,7 @@ import prisma from "@/libs/prismadb";
 import AuthContext from "../context/AuthContext";
 import ActiveStatus from "../components/ActiveStatus";
 import StripeAuthWrapper from "../components/StripeAuthWrapper";
+import LocationInitializer from "../components/LocationInitializer";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -46,13 +47,14 @@ export default async function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <LocationInitializer />
         <StripeAuthWrapper>
-        <AuthContext>
-          <Header user={user} />
-          <Toaster position="top-center" />
-          <ActiveStatus />
-          {children}
-        </AuthContext>
+          <AuthContext>
+            <Header user={user} />
+            <Toaster position="top-center" />
+            <ActiveStatus />
+            {children}
+          </AuthContext>
         </StripeAuthWrapper>
       </body>
     </html>

@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { categories, defaultRadius } from "../../libs/helpers";
 import { faMoneyBillWave } from "@fortawesome/free-solid-svg-icons";
 import LabelRadioButton from "./LabelRadioButton";
 import SubmitButton from "./SubmitButton";
 import DistancePicker from "./DistancePicker";
-import { Location } from "./LocationPicker";
+import type { Location } from "@/libs/location";
 import useCurrentLocation from "../hooks/useCurrentLocation";
 import useRadius from "../hooks/useRadius";
 import SkillTags from "./SkillTags";
@@ -22,16 +22,17 @@ export default function SearchForm({ onSearch }: Props) {
   const setRadius = useRadius((state) => state.setRadius);
   const center = useCurrentLocation((state) => state.currLocation);
   const setCenter = useCurrentLocation((state) => state.setCurrLocation);
-  const [prevCenter, setPrevCenter] = useState<Location | null>(null);
   const [selectedCategory, setSelectedCategory] = useState("");
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
 
   const formRef = useRef<HTMLFormElement | null>(null);
+  const submittedInitialLocation = useRef(false);
+
   useEffect(() => {
-    if (center && !prevCenter) {
+    if (center && !submittedInitialLocation.current) {
+      submittedInitialLocation.current = true;
       formRef.current?.requestSubmit();
-      setPrevCenter(center);
     }
   }, [center]);
 
@@ -55,9 +56,14 @@ export default function SearchForm({ onSearch }: Props) {
     setTagsFilter(e.target.value);
   }
 
-  useEffect(() => {
-    if (center) formRef.current?.requestSubmit();
-  }, []);
+  const handleDistanceChange = useCallback(
+    ({ radius, center }: { radius: number; center: Location }) => {
+      setRadius(radius);
+      setCenter(center);
+    },
+    [setCenter, setRadius]
+  );
+
   return (
     <form
       ref={formRef}
@@ -150,14 +156,12 @@ export default function SearchForm({ onSearch }: Props) {
         <input
           type="hidden"
           name="center"
-          value={[JSON.stringify(center?.lat), JSON.stringify(center?.lng)]}
-        ></input>
+          value={center ? `${center.lat},${center.lng}` : ""}
+          disabled={!center}
+        />
         <DistancePicker
           defaultRadius={defaultRadius}
-          onChange={({ radius, center }) => {
-            setRadius(radius);
-            setCenter(center);
-          }}
+          onChange={handleDistanceChange}
         />
       </div>
       <SubmitButton>Search</SubmitButton>

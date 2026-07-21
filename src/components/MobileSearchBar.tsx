@@ -1,12 +1,17 @@
 "use client";
 
-import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useRef,
+  useState,
+} from "react";
+import type { Dispatch, SetStateAction } from "react";
 import { categories, defaultRadius } from "../../libs/helpers";
 import { faMoneyBillWave } from "@fortawesome/free-solid-svg-icons";
 import LabelRadioButton from "./LabelRadioButton";
 import SubmitButton from "./SubmitButton";
 import DistancePicker from "./DistancePicker";
-import { Location } from "./LocationPicker";
+import type { Location } from "@/libs/location";
 import useCurrentLocation from "../hooks/useCurrentLocation";
 import useRadius from "../hooks/useRadius";
 import SkillTags from "./SkillTags";
@@ -29,18 +34,11 @@ export default function MobileSearchBar({
   const setRadius = useRadius((state) => state.setRadius);
   const center = useCurrentLocation((state) => state.currLocation);
   const setCenter = useCurrentLocation((state) => state.setCurrLocation);
-  const [prevCenter, setPrevCenter] = useState<Location | null>(null);
   const [selectedCategory, setSelectedCategory] = useState("");
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
 
   const formRef = useRef<HTMLFormElement | null>(null);
-  useEffect(() => {
-    if (center && !prevCenter) {
-      formRef.current?.requestSubmit();
-      setPrevCenter(center);
-    }
-  }, [center]);
 
   function handleMinPriceChange(e: React.ChangeEvent<HTMLInputElement>) {
     setMinPrice(e.target.value);
@@ -62,9 +60,14 @@ export default function MobileSearchBar({
     setTagsFilter(e.target.value);
   }
 
-  useEffect(() => {
-    if (center) formRef.current?.requestSubmit();
-  }, []);
+  const handleDistanceChange = useCallback(
+    ({ radius, center }: { radius: number; center: Location }) => {
+      setRadius(radius);
+      setCenter(center);
+    },
+    [setCenter, setRadius]
+  );
+
   return isOpen ? (
     <div
       className="fixed inset-0 z-40 bg-black bg-opacity-50 flex justify-center items-start pt-24"
@@ -74,11 +77,14 @@ export default function MobileSearchBar({
         action={onSearch}
         className="bg-white w-[90%] max-w-md p-6 rounded-md shadow-lg z-50 overflow-y-auto max-h-[80vh] relative"
       >
-        <IoMdCloseCircleOutline
-        className="p-1 absolute top-0 left-0 text-theme-green hover:text-green-800"
-        size={40}
-        onClick={() => setIsOpen(false)}
-      />
+        <button
+          type="button"
+          aria-label="Close search filters"
+          className="absolute left-0 top-0 text-theme-green hover:text-green-800"
+          onClick={() => setIsOpen(false)}
+        >
+          <IoMdCloseCircleOutline className="p-1" size={40} />
+        </button>
 
         <div>
           <label className="mt-3 p-0" htmlFor="phraseSearch">
@@ -165,14 +171,12 @@ export default function MobileSearchBar({
           <input
             type="hidden"
             name="center"
-            value={[JSON.stringify(center?.lat), JSON.stringify(center?.lng)]}
+            value={center ? `${center.lat},${center.lng}` : ""}
+            disabled={!center}
           />
           <DistancePicker
             defaultRadius={defaultRadius}
-            onChange={({ radius, center }) => {
-              setRadius(radius);
-              setCenter(center);
-            }}
+            onChange={handleDistanceChange}
           />
         </div>
 
