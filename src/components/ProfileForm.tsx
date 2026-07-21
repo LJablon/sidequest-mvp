@@ -264,19 +264,6 @@ export default function ProfileForm({ user }: ProfileFormProps) {
 
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700">
-            Certifications
-          </label>
-          <CertificationLinks
-            certifications={certifications}
-            setCertifications={setCertifications}
-            onCertificationChange={handleCertificationChange}
-            onAddCertification={addCertification}
-            onRemoveCertification={removeCertification}
-          />
-        </div>
-
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700">
             Media
           </label>
           <MediaLinks
@@ -285,6 +272,19 @@ export default function ProfileForm({ user }: ProfileFormProps) {
             onMediaChange={handleMediaChange}
             onAddMedia={addMedia}
             onRemoveMedia={removeMedia}
+          />
+        </div>
+
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700">
+            Certifications
+          </label>
+          <CertificationLinks
+            certifications={certifications}
+            setCertifications={setCertifications}
+            onCertificationChange={handleCertificationChange}
+            onAddCertification={addCertification}
+            onRemoveCertification={removeCertification}
           />
         </div>
 
