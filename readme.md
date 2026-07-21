@@ -74,4 +74,4 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 ## Deployment
 
-https://sidequest-blue.vercel.app/
+[https://sidequest-blue.vercel.app/](https://sidequest-mvp-xi.vercel.app/)
