@@ -1,42 +1,64 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { getPusherClient } from "@/libs/pusher.client";
 import axios from "axios";
 import { useSession } from "next-auth/react";
 import useConversation from "./useConversation";
+import type { FullConversationType } from "@/src/types";
+import {
+  getUnreadConversationCount,
+  subscribeToUnreadConversationEvents,
+} from "./unreadConversationCount";
 
 const useUnreadConversationCount = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const session = useSession();
-  const pusherKey = useMemo(() => session.data?.user?.email, [session.data?.user?.email]);
+  const pusherKey = session.data?.user?.email;
   const { conversationId } = useConversation();
 
-  const fetchConversations = async () => {
-    const res = await axios.get("/api/conversations");
-    const conversations = res.data;
-
-    const unread = conversations
-      .filter((conversation: any) => {
-        const lastMessage = conversation.messages[conversation.messages.length - 1];
-        if (!lastMessage) return false;
-
-        return !lastMessage.seen.some((user: any) => user.email === pusherKey);
-      });
-    setUnreadCount(unread.length);
-  };
-
   useEffect(() => {
-    const pusherClient = getPusherClient();
-    fetchConversations();
-    const handler = () => fetchConversations();
+    if (!pusherKey) {
+      setUnreadCount(0);
+      return;
+    }
 
-    pusherClient.subscribe("conversations");
-    pusherClient.bind("conversation:update", handler);
-    pusherClient.bind("message:update", handler);
+    let isActive = true;
+    let latestRequestId = 0;
+
+    const fetchConversations = async () => {
+      const requestId = ++latestRequestId;
+
+      try {
+        const { data: conversations } =
+          await axios.get<FullConversationType[]>("/api/conversations");
+
+        if (!isActive || requestId !== latestRequestId) {
+          return;
+        }
+
+        setUnreadCount(getUnreadConversationCount(conversations, pusherKey));
+      } catch (error) {
+        if (isActive && requestId === latestRequestId) {
+          console.error("Failed to refresh unread conversations", error);
+        }
+      }
+    };
+
+    const pusherClient = getPusherClient();
+    const handleConversationEvent = () => {
+      void fetchConversations();
+    };
+    const unsubscribeFromEvents = subscribeToUnreadConversationEvents(
+      pusherClient,
+      pusherKey,
+      handleConversationEvent
+    );
+
+    void fetchConversations();
 
     return () => {
-      pusherClient.unbind("conversation:update", handler);
-      pusherClient.unbind("message:update", handler);
-      pusherClient.unsubscribe("conversations");
+      isActive = false;
+      latestRequestId += 1;
+      unsubscribeFromEvents();
     };
   }, [pusherKey, conversationId]);
 
