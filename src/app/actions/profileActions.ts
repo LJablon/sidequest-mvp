@@ -17,7 +17,8 @@ export async function createProfile(formData: FormData) {
     const skills = data.skills ? JSON.parse(data.skills as string) : []
     const socials = data.socials ? JSON.parse(data.socials as string) : []
     const certifications = data.certifications ? JSON.parse(data.certifications as string) : []
-    
+    const media = data.media ? JSON.parse(data.media as string) : []
+
     const newProfileData = {
       name: data.name as string,
       email: session.user.email,
@@ -36,6 +37,14 @@ export async function createProfile(formData: FormData) {
           issuer: cert.issuer
         }))
       },
+      media: {
+        deleteMany: {},
+        create: media.map((item: any) => ({
+          name: item.name,
+          documentUrl: item.documentUrl || null,
+          documentFile: item.documentFile || null,
+        }))
+      },
       activeStatus: data.activeStatus === "Active",
     }
 
@@ -44,7 +53,8 @@ export async function createProfile(formData: FormData) {
       update: newProfileData,
       create: newProfileData,
       include: {
-        certifications: true
+        certifications: true,
+        media: true
       }
     })
 
@@ -68,11 +78,12 @@ export async function updateProfile(formData: FormData) {
     const skills = data.skills ? JSON.parse(data.skills as string) : []
     const socials = data.socials ? JSON.parse(data.socials as string) : []
     const certifications = data.certifications ? JSON.parse(data.certifications as string) : []
-    
+    const media = data.media ? JSON.parse(data.media as string) : []
+
     // First, get the current user to check existing certifications
     const currentUser = await prisma.user.findUnique({
       where: { email: session.user.email },
-      include: { certifications: true }
+      include: { certifications: true, media: true }
     })
 
     if (!currentUser) {
@@ -98,6 +109,14 @@ export async function updateProfile(formData: FormData) {
           issuer: cert.issuer
         }))
       },
+      media: {
+        deleteMany: {},
+        create: media.map((item: any) => ({
+          name: item.name,
+          documentUrl: item.documentUrl || null,
+          documentFile: item.documentFile || null,
+        }))
+      },
       activeStatus: data.activeStatus === "Active",
     }
 
@@ -105,7 +124,8 @@ export async function updateProfile(formData: FormData) {
       where: { email: session.user.email },
       data: profileData,
       include: {
-        certifications: true
+        certifications: true,
+        media: true
       }
     })
 

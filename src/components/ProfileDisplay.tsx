@@ -1,4 +1,4 @@
-import type { User, Certification } from "@prisma/client";
+import type { User, Certification, Media } from "@prisma/client";
 import Link from "next/link";
 import Image from "next/image";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -13,6 +13,7 @@ import {
 interface ProfileDisplayProps {
   user: User & {
     certifications: Certification[];
+    media: Media[];
   };
 }
 
@@ -211,6 +212,62 @@ export default function ProfileDisplay({ user }: ProfileDisplayProps) {
                         <a
                           href={
                             cert.documentUrl || (cert.documentFile as any)?.url
+                          }
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2 text-theme-green hover:text-emerald-600 transition-colors"
+                        >
+                          <span className="text-sm">View</span>
+                        </a>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {user.media && user.media.length > 0 && (
+          <div className="p-6 bg-gray-100 rounded-2xl">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">
+              Media
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {user.media.map((item, index) => (
+                <div
+                  key={index}
+                  className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow"
+                >
+                  <h4 className="font-medium text-gray-900 mb-2">
+                    {item.name}
+                  </h4>
+                  {(item.documentUrl || item.documentFile) && (
+                    <div className="mt-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                      <div className="flex items-center gap-3">
+                        <FontAwesomeIcon
+                          icon={faFileAlt}
+                          className="text-gray-400 text-xl"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-900 truncate">
+                            {item.documentFile
+                              ? (item.documentFile as any).name
+                              : "External Document"}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {item.documentFile
+                              ? `${(
+                                  (item.documentFile as any).size /
+                                  1024 /
+                                  1024
+                                ).toFixed(2)} MB`
+                              : "External Link"}
+                          </p>
+                        </div>
+                        <a
+                          href={
+                            item.documentUrl || (item.documentFile as any)?.url
                           }
                           target="_blank"
                           rel="noopener noreferrer"
